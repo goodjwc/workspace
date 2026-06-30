@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>카운터 앱</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-slate-100 flex items-center justify-center">
+  <div class="bg-white rounded-2xl shadow-lg p-10 flex flex-col items-center gap-8 w-80">
+    <h1 class="text-2xl font-bold text-slate-700">카운터</h1>
+
+    <div id="count" class="text-7xl font-mono font-extrabold text-blue-600 w-full text-center py-4 bg-blue-50 rounded-xl">
+      0
+    </div>
+
+    <div class="flex gap-3 w-full">
+      <button onclick="change(-1)"
+        class="flex-1 py-3 text-xl font-bold bg-blue-100 text-blue-700 rounded-xl hover:bg-blue-200 active:scale-95 transition-all">
+        −1
+      </button>
+      <button onclick="change(1)"
+        class="flex-1 py-3 text-xl font-bold bg-blue-600 text-white rounded-xl hover:bg-blue-700 active:scale-95 transition-all">
+        +1
+      </button>
+    </div>
+
+    <button onclick="reset()"
+      class="w-full py-3 text-sm font-semibold text-slate-500 bg-slate-100 rounded-xl hover:bg-slate-200 active:scale-95 transition-all">
+      리셋
+    </button>
+  </div>
+
+  <script>
+    // 앱의 유일한 상태값 — 모든 UI는 이 변수를 기준으로 갱신됨
+    let count = 0;
+    // DOM 참조를 캐싱 — 함수 호출마다 재탐색하지 않도록 미리 저장
+    const el = document.getElementById('count');
+
+    // 현재 count 값을 화면에 반영하는 렌더 함수
+    function render() {
+      // 숫자 텍스트 갱신
+      el.textContent = count;
+      // 기존 색상 클래스를 정규식으로 제거 후 조건에 맞는 클래스로 교체
+      // (음수: 빨간색 / 0 이상: 파란색)
+      el.className = el.className.replace(/text-(blue|red)-600/, count < 0 ? 'text-red-600' : 'text-blue-600');
+      // classList.toggle(클래스, 조건) — 조건이 true면 추가, false면 제거
+      el.classList.toggle('text-red-600', count < 0);
+      el.classList.toggle('text-blue-600', count >= 0);
+    }
+
+    // 증가·감소 공용 함수 — delta에 +1 또는 -1을 전달해 재사용
+    function change(delta) { count += delta; render(); }
+    // 카운트를 0으로 초기화한 뒤 화면 갱신
+    function reset() { count = 0; render(); }
+  </script>
+</body>
+</html>

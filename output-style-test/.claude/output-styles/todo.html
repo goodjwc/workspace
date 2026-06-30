@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>할 일 목록</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-slate-100 flex items-start justify-center pt-20">
+  <div class="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
+    <h1 class="text-2xl font-bold text-slate-700 mb-6">할 일 목록</h1>
+
+    <!-- 입력 영역 -->
+    <div class="flex gap-2 mb-6">
+      <input
+        id="input"
+        type="text"
+        placeholder="할 일을 입력하세요"
+        class="flex-1 px-4 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+      />
+      <button
+        onclick="addTodo()"
+        class="px-5 py-2 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 active:scale-95 transition-all"
+      >
+        추가
+      </button>
+    </div>
+
+    <!-- 필터 탭 -->
+    <div class="flex gap-1 mb-4 bg-slate-100 p-1 rounded-xl">
+      <button onclick="setFilter('all')"   id="f-all"  class="flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all">전체</button>
+      <button onclick="setFilter('active')" id="f-active" class="flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all">진행 중</button>
+      <button onclick="setFilter('done')"  id="f-done" class="flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all">완료</button>
+    </div>
+
+    <!-- 할 일 목록 -->
+    <ul id="list" class="flex flex-col gap-2"></ul>
+
+    <!-- 필터 결과가 없을 때 안내 문구 -->
+    <p id="empty" class="text-center text-slate-400 text-sm mt-4">표시할 항목이 없습니다.</p>
+
+    <!-- 완료 항목 일괄 삭제 버튼 — 완료 항목이 있을 때만 표시 -->
+    <div class="mt-4 flex justify-end">
+      <button id="clear-btn" onclick="clearDone()"
+        class="hidden text-xs text-red-400 hover:text-red-600 font-medium transition-all">
+        완료 항목 모두 삭제
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // 로컬 스토리지에서 저장된 목록을 불러옴 — 없으면 빈 배열로 초기화
+    let todos  = JSON.parse(localStorage.getItem('todos') || '[]');
+    // 현재 활성 필터 — 'all' | 'active' | 'done'
+    let filter = 'all';
+
+    // DOM 참조 캐싱
+    const input    = document.getElementById('input');
+    const list     = document.getElementById('list');
+    const empty    = document.getElementById('empty');
+    const clearBtn = document.getElementById('clear-btn');
+
+    // 현재 todos 배열을 로컬 스토리지에 직렬화해 저장
+    function save() {
+      localStorage.setItem('todos', JSON.stringify(todos));
+    }
+
+    // 필터 탭 활성 스타일을 갱신하는 함수
+    function updateFilterUI() {
+      ['all', 'active', 'done'].forEach(key => {
+        const btn = document.getElementById(`f-${key}`);
+        // 활성 탭은 흰 배경 + 진한 텍스트, 비활성은 투명 배경
+        const active = filter === key;
+        btn.className = [
+          'flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all',
+          active ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'
+        ].join(' ');
+      });
+    }
+
+    // 필터를 변경하고 화면을 갱신하는 함수
+    function setFilter(key) {
+      filter = key;
+      render();
+    }
+
+    // 전체 목록을 다시 그리는 렌더 함수
+    function render() {
+      // 기존 목록 초기화
+      list.innerHTML = '';
+
+      // 현재 필터에 맞는 항목만 추출
+      const visible = todos.filter(t =>
+        filter === 'all'    ? true :
+        filter === 'done'   ? t.done :
+        /* active */          !t.done
+      );
+
+      // 필터 탭 UI 갱신
+      updateFilterUI();
+
+      // 완료 항목이 하나라도 있으면 일괄 삭제 버튼 표시
+      clearBtn.classList.toggle('hidden', !todos.some(t => t.done));
+
+      // 표시할 항목 유무에 따라 안내 문구 제어
+      empty.classList.toggle('hidden', visible.length > 0);
+
+      visible.forEach(todo => {
+        const li = document.createElement('li');
+        li.className = 'flex items-center gap-3 px-4 py-3 bg-slate-50 rounded-xl group';
+
+        // 체크박스 — 변경 시 해당 항목의 done 상태를 토글
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = todo.done;
+        checkbox.className = 'w-4 h-4 accent-blue-600 cursor-pointer flex-shrink-0';
+        checkbox.onchange = () => toggle(todo.id);
+
+        // 할 일 텍스트 — done이면 줄긋기 + 흐린 색상 적용
+        const span = document.createElement('span');
+        span.textContent = todo.text;
+        span.className = [
+          'flex-1 text-sm',
+          todo.done ? 'line-through text-slate-400' : 'text-slate-700'
+        ].join(' ');
+
+        // 삭제 버튼 — 호버 시에만 표시(group-hover 활용)
+        const del = document.createElement('button');
+        del.textContent = '✕';
+        del.className = 'text-slate-300 hover:text-red-500 text-xs font-bold opacity-0 group-hover:opacity-100 transition-all';
+        del.onclick = () => remove(todo.id);
+
+        li.append(checkbox, span, del);
+        list.appendChild(li);
+      });
+    }
+
+    // 새 할 일 추가 — 빈 입력은 무시
+    function addTodo() {
+      const text = input.value.trim();
+      if (!text) return;
+
+      // 고유 ID는 타임스탬프로 생성
+      todos.push({ id: Date.now(), text, done: false });
+      input.value = '';
+      save();
+      render();
+    }
+
+    // 체크박스 토글 — 해당 id의 done 값을 반전
+    function toggle(id) {
+      todos = todos.map(t => t.id === id ? { ...t, done: !t.done } : t);
+      save();
+      render();
+    }
+
+    // 항목 삭제 — 해당 id를 배열에서 제거
+    function remove(id) {
+      todos = todos.filter(t => t.id !== id);
+      save();
+      render();
+    }
+
+    // 완료된 항목을 배열에서 일괄 제거
+    function clearDone() {
+      todos = todos.filter(t => !t.done);
+      save();
+      render();
+    }
+
+    // Enter 키로도 추가 가능하도록 이벤트 등록
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') addTodo(); });
+
+    // 초기 렌더링
+    render();
+  </script>
+</body>
+</html>
