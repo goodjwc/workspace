@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>계산기</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: #1a1a2e;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .calculator {
+      background: #16213e;
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      width: 320px;
+    }
+
+    .display {
+      background: #0f3460;
+      border-radius: 12px;
+      padding: 20px 16px 12px;
+      margin-bottom: 20px;
+      text-align: right;
+    }
+
+    .display .expression {
+      color: #a8b2c8;
+      font-size: 14px;
+      min-height: 20px;
+      margin-bottom: 6px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .display .result {
+      color: #e2e8f0;
+      font-size: 36px;
+      font-weight: 300;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: 500;
+      padding: 18px 0;
+      cursor: pointer;
+      transition: transform 0.08s, opacity 0.08s;
+    }
+
+    button:active { transform: scale(0.93); opacity: 0.85; }
+
+    .btn-number { background: #1a2a4a; color: #e2e8f0; }
+    .btn-operator { background: #e94560; color: #fff; }
+    .btn-clear { background: #533483; color: #fff; }
+    .btn-equals { background: #e94560; color: #fff; grid-column: span 2; }
+    .btn-zero { grid-column: span 2; }
+  </style>
+</head>
+<body>
+  <div class="calculator">
+    <div class="display">
+      <div class="expression" id="expression"></div>
+      <div class="result" id="result">0</div>
+    </div>
+    <div class="buttons">
+      <button class="btn-clear" onclick="clearAll()">AC</button>
+      <button class="btn-clear" onclick="deleteLast()">⌫</button>
+      <button class="btn-operator" onclick="appendChar('%')">%</button>
+      <button class="btn-operator" onclick="appendChar('/')">÷</button>
+
+      <button class="btn-number" onclick="appendChar('7')">7</button>
+      <button class="btn-number" onclick="appendChar('8')">8</button>
+      <button class="btn-number" onclick="appendChar('9')">9</button>
+      <button class="btn-operator" onclick="appendChar('*')">×</button>
+
+      <button class="btn-number" onclick="appendChar('4')">4</button>
+      <button class="btn-number" onclick="appendChar('5')">5</button>
+      <button class="btn-number" onclick="appendChar('6')">6</button>
+      <button class="btn-operator" onclick="appendChar('-')">−</button>
+
+      <button class="btn-number" onclick="appendChar('1')">1</button>
+      <button class="btn-number" onclick="appendChar('2')">2</button>
+      <button class="btn-number" onclick="appendChar('3')">3</button>
+      <button class="btn-operator" onclick="appendChar('+')">+</button>
+
+      <button class="btn-number btn-zero" onclick="appendChar('0')">0</button>
+      <button class="btn-number" onclick="appendChar('.')">.</button>
+      <button class="btn-equals" onclick="calculate()">=</button>
+    </div>
+  </div>
+
+  <script>
+    let currentInput = '';
+    let lastResult = null;
+
+    function updateDisplay() {
+      const resultEl = document.getElementById('result');
+      const exprEl = document.getElementById('expression');
+
+      const displayInput = currentInput
+        .replace(/\*/g, '×')
+        .replace(/\//g, '÷');
+
+      if (currentInput === '') {
+        resultEl.textContent = lastResult !== null ? lastResult : '0';
+        exprEl.textContent = '';
+      } else {
+        resultEl.textContent = displayInput;
+        exprEl.textContent = lastResult !== null ? lastResult : '';
+      }
+    }
+
+    function appendChar(char) {
+      const operators = ['+', '-', '*', '/'];
+
+      // 결과 직후에 숫자를 입력하면 새 계산 시작
+      if (lastResult !== null && !operators.includes(char)) {
+        currentInput = '';
+        lastResult = null;
+      }
+      // 결과 직후에 연산자를 입력하면 결과값에 이어서 계산
+      if (lastResult !== null && operators.includes(char)) {
+        currentInput = String(lastResult);
+        lastResult = null;
+      }
+
+      // 소수점 중복 방지: 현재 숫자 토큰에 이미 '.'이 있으면 추가 안 함
+      if (char === '.') {
+        const tokens = currentInput.split(/[\+\-\*\/]/);
+        if (tokens[tokens.length - 1].includes('.')) return;
+      }
+
+      // 연산자 연속 입력 방지
+      if (operators.includes(char) && operators.includes(currentInput.slice(-1))) {
+        currentInput = currentInput.slice(0, -1);
+      }
+
+      currentInput += char;
+      updateDisplay();
+    }
+
+    function clearAll() {
+      currentInput = '';
+      lastResult = null;
+      updateDisplay();
+    }
+
+    function deleteLast() {
+      currentInput = currentInput.slice(0, -1);
+      updateDisplay();
+    }
+
+    function calculate() {
+      if (!currentInput) return;
+
+      if (!/^[0-9+\-*/.%]+$/.test(currentInput)) {
+        lastResult = '오류';
+        currentInput = '';
+        updateDisplay();
+        return;
+      }
+
+      try {
+        const value = eval(currentInput);
+        if (!isFinite(value)) {
+          lastResult = '오류';
+        } else {
+          lastResult = parseFloat(value.toFixed(10));
+        }
+      } catch {
+        lastResult = '오류';
+      }
+
+      currentInput = '';
+      updateDisplay();
+    }
+    document.addEventListener('keydown', function(e) {
+      // TODO(human): e.key 값을 확인하고 알맞은 계산기 함수를 호출하세요
+      // 힌트: 숫자/연산자는 appendChar(), 엔터는 calculate(), 백스페이스는 deleteLast(), ESC는 clearAll()
+    });
+  </script>
+</body>
+</html>

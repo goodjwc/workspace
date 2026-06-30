@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="ko" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Name | Portfolio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700;9..40,900&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['DM Sans', 'sans-serif'],
+            serif: ['Instrument Serif', 'serif'],
+          },
+          colors: {
+            nuvia: {
+              purple: '#5847F3',
+              dark: '#111213',
+              white: '#FFFFFF',
+            }
+          },
+          animation: {
+            'fade-up': 'fadeUp 0.6s ease forwards',
+            'glow-pulse': 'glowPulse 4s ease-in-out infinite',
+          },
+          keyframes: {
+            fadeUp: {
+              '0%': { opacity: '0', transform: 'translateY(30px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            },
+            glowPulse: {
+              '0%, 100%': { opacity: '0.6', transform: 'scale(1)' },
+              '50%': { opacity: '1', transform: 'scale(1.05)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      --nuvia-purple: #5847F3;
+      --nuvia-dark: #111213;
+      --nuvia-white: #FFFFFF;
+    }
+    body {
+      background-color: var(--nuvia-dark);
+      color: rgba(255, 255, 255, 0.85);
+    }
+    .grain::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 50;
+      opacity: 0.04;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+    .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .nav-link::after {
+      content: ''; display: block; height: 2px; width: 0;
+      background: var(--nuvia-purple); transition: width 0.3s ease;
+    }
+    .nav-link:hover::after { width: 100%; }
+    .skill-tag:hover { transform: translateY(-2px); }
+    .project-card {
+      transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease, background 0.35s ease;
+    }
+    .project-card:hover {
+      transform: translateY(-10px);
+      border-color: rgba(88, 71, 243, 0.55);
+      background: rgba(88, 71, 243, 0.05);
+      box-shadow: 0 24px 48px rgba(88, 71, 243, 0.18), 0 0 0 1px rgba(88, 71, 243, 0.25);
+    }
+    .project-card .project-thumb {
+      transition: background-color 0.35s ease;
+    }
+    .project-card:hover .project-thumb {
+      background-color: rgba(88, 71, 243, 0.28);
+    }
+    .project-card .project-num {
+      transition: color 0.35s ease, transform 0.35s ease;
+    }
+    .project-card:hover .project-num {
+      color: rgba(88, 71, 243, 1);
+      transform: scale(1.12);
+    }
+    .brand-panel {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .purple-glow {
+      background: radial-gradient(ellipse at center, rgba(88, 71, 243, 0.45) 0%, rgba(88, 71, 243, 0.12) 45%, transparent 70%);
+    }
+    .halftone {
+      background-image: radial-gradient(circle, rgba(88, 71, 243, 0.35) 1px, transparent 1px);
+      background-size: 4px 4px;
+    }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #1a1b1c; }
+    ::-webkit-scrollbar-thumb { background: #5847F3; border-radius: 3px; }
+  </style>
+</head>
+<body class="font-sans antialiased grain">
+
+  <!-- ── Navbar ── -->
+  <nav id="navbar" class="fixed top-0 left-0 right-0 z-40 transition-all duration-300">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="#hero" class="flex items-center gap-2.5 group shrink-0">
+        <svg class="w-8 h-8" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <path d="M4 28V4L16 20L28 4V28" stroke="#5847F3" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M10 28V16L16 24L22 16V28" stroke="#5847F3" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+        </svg>
+        <span class="text-lg font-bold tracking-tight text-white lowercase">yourname</span>
+      </a>
+      <div class="hidden md:flex items-center gap-8 ml-auto">
+        <ul class="flex items-center gap-8 text-sm font-medium text-white/60">
+          <li><a href="#about"    class="nav-link hover:text-white transition-colors">About</a></li>
+          <li><a href="#skills"   class="nav-link hover:text-white transition-colors">Skills</a></li>
+          <li><a href="#projects" class="nav-link hover:text-white transition-colors">Projects</a></li>
+          <li><a href="#contact"  class="nav-link hover:text-white transition-colors">Contact</a></li>
+        </ul>
+        <a href="#contact"
+           class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold
+                  bg-nuvia-purple/10 text-nuvia-purple border border-nuvia-purple/30
+                  hover:bg-nuvia-purple hover:text-white transition-all duration-300">
+          Hire Me
+        </a>
+      </div>
+      <button id="menu-btn" class="md:hidden text-white/60 hover:text-white" aria-label="메뉴 열기">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      </button>
+    </div>
+    <div id="mobile-menu" class="hidden md:hidden bg-[#111213]/95 backdrop-blur border-t border-white/10">
+      <ul class="flex flex-col px-6 py-4 gap-4 text-sm font-medium text-white/60">
+        <li><a href="#about"    class="hover:text-white transition-colors" onclick="closeMobileMenu()">About</a></li>
+        <li><a href="#skills"   class="hover:text-white transition-colors" onclick="closeMobileMenu()">Skills</a></li>
+        <li><a href="#projects" class="hover:text-white transition-colors" onclick="closeMobileMenu()">Projects</a></li>
+        <li><a href="#contact"  class="hover:text-white transition-colors" onclick="closeMobileMenu()">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ── Hero ── -->
+  <section id="hero" class="min-h-screen flex items-center relative overflow-hidden">
+    <div class="absolute inset-0 purple-glow animate-glow-pulse pointer-events-none"></div>
+    <div class="absolute top-0 right-0 w-1/2 h-full halftone opacity-30 pointer-events-none"></div>
+    <div class="absolute bottom-0 left-0 w-96 h-96 bg-nuvia-purple/20 rounded-full blur-[120px] pointer-events-none"></div>
+
+    <div class="relative max-w-6xl mx-auto px-6 py-32 grid lg:grid-cols-2 gap-12 items-center w-full">
+      <div>
+        <p class="font-serif italic text-white/70 text-lg md:text-xl mb-6 leading-snug">
+          Intelligent Insights for<br/>Creative Development
+        </p>
+        <h1 class="text-5xl md:text-7xl font-black text-white mb-6 leading-[1.05] tracking-tight lowercase">
+          your name
+        </h1>
+        <p class="text-white/50 text-base md:text-lg max-w-md mb-10 leading-relaxed">
+          사용자 경험을 최우선으로 생각하는 프론트엔드 개발자입니다.
+          깔끔한 코드와 정교한 인터페이스로 아이디어를 현실로 만듭니다.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4">
+          <a href="#projects"
+             class="px-8 py-3.5 rounded-full font-bold text-sm uppercase tracking-wider text-white
+                    bg-nuvia-purple hover:bg-[#6b5cf5]
+                    shadow-lg shadow-nuvia-purple/40 transition-all duration-300 hover:scale-105">
+            프로젝트 보기
+          </a>
+          <a href="#contact"
+             class="px-8 py-3.5 rounded-full font-bold text-sm uppercase tracking-wider text-white/70
+                    border border-white/20 hover:border-nuvia-purple hover:text-white
+                    transition-all duration-300 hover:scale-105">
+            연락하기
+          </a>
+        </div>
+      </div>
+
+      <!-- hero visual -->
+      <div class="relative hidden lg:block">
+        <div class="brand-panel rounded-2xl overflow-hidden aspect-[4/5] relative">
+          <div class="absolute inset-0 bg-gradient-to-br from-nuvia-purple/40 via-nuvia-purple/10 to-transparent"></div>
+          <div class="absolute inset-0 halftone mix-blend-overlay opacity-60"></div>
+          <div class="absolute inset-0 flex flex-col justify-between p-8">
+            <div class="flex justify-between items-start">
+              <span class="text-xs font-bold uppercase tracking-[0.2em] text-white/40">Portfolio</span>
+              <svg class="w-10 h-10" viewBox="0 0 32 32" fill="none">
+                <path d="M4 28V4L16 20L28 4V28" stroke="#5847F3" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div>
+              <div class="w-20 h-20 rounded-full bg-nuvia-purple/30 border border-nuvia-purple/50
+                          flex items-center justify-center text-2xl font-black text-white mb-4">
+                YN
+              </div>
+              <p class="font-serif italic text-2xl text-white/90">Frontend Developer</p>
+              <p class="text-sm text-white/40 mt-2 uppercase tracking-widest">UI/UX Enthusiast</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+      <svg class="w-5 h-5 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ── About ── -->
+  <section id="about" class="py-24 px-6 border-t border-white/5">
+    <div class="max-w-6xl mx-auto">
+      <div class="reveal grid md:grid-cols-2 gap-16 items-center">
+        <div class="relative">
+          <div class="brand-panel w-full aspect-square max-w-sm mx-auto rounded-2xl overflow-hidden shadow-2xl">
+            <div class="absolute inset-0 halftone opacity-20"></div>
+            <div class="relative z-10 h-full flex flex-col items-center justify-center p-8">
+              <div class="w-24 h-24 mb-4 rounded-full bg-nuvia-purple/20 border-2 border-nuvia-purple
+                          flex items-center justify-center text-3xl font-black text-white">
+                YN
+              </div>
+              <p class="text-white font-bold text-lg lowercase">your name</p>
+              <p class="font-serif italic text-nuvia-purple text-sm mt-1">Frontend Developer</p>
+              <div class="flex items-center gap-3 mt-4">
+                <span class="w-2 h-2 rounded-full bg-nuvia-purple animate-pulse"></span>
+                <span class="text-xs text-white/40 uppercase tracking-widest">Available for work</span>
+              </div>
+            </div>
+          </div>
+          <div class="absolute -top-4 -right-4 brand-panel rounded-xl px-3 py-2 text-xs font-bold text-white/60 uppercase tracking-wider hidden md:block">
+            UI/UX
+          </div>
+          <div class="absolute -bottom-4 -left-4 brand-panel rounded-xl px-3 py-2 text-xs font-bold text-white/60 uppercase tracking-wider hidden md:block">
+            Web Dev
+          </div>
+        </div>
+
+        <div>
+          <p class="text-nuvia-purple font-bold tracking-[0.2em] uppercase text-xs mb-3">About Me</p>
+          <h2 class="font-serif italic text-3xl md:text-4xl text-white mb-6">저를 소개합니다</h2>
+          <div class="space-y-4 text-white/50 leading-relaxed">
+            <p>
+              안녕하세요! 저는 <span class="text-white font-medium">Your Name</span>입니다.
+              사용자 중심의 인터페이스를 설계하고 구현하는 것을 좋아하는 개발자입니다.
+            </p>
+            <p>
+              다양한 프로젝트 경험을 통해 <span class="text-nuvia-purple font-medium">HTML, CSS, JavaScript</span>를
+              깊이 있게 다루며 성장해 왔습니다.
+            </p>
+            <p>
+              개발 외에도 UI 디자인과 사용자 경험 연구에 관심이 많으며, 코드와 디자인의 경계를 넘나드는 것을 즐깁니다.
+            </p>
+          </div>
+          <div class="grid grid-cols-3 gap-4 mt-8">
+            <div class="text-center p-4 rounded-xl brand-panel">
+              <div class="text-2xl font-black text-nuvia-purple">3+</div>
+              <div class="text-xs text-white/40 mt-1 uppercase tracking-wider">Years</div>
+            </div>
+            <div class="text-center p-4 rounded-xl brand-panel">
+              <div class="text-2xl font-black text-nuvia-purple">10+</div>
+              <div class="text-xs text-white/40 mt-1 uppercase tracking-wider">Projects</div>
+            </div>
+            <div class="text-center p-4 rounded-xl brand-panel">
+              <div class="text-2xl font-black text-nuvia-purple">5+</div>
+              <div class="text-xs text-white/40 mt-1 uppercase tracking-wider">Clients</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Skills ── -->
+  <section id="skills" class="py-24 px-6 border-t border-white/5">
+    <div class="max-w-6xl mx-auto">
+      <div class="reveal text-center mb-16">
+        <p class="text-nuvia-purple font-bold tracking-[0.2em] uppercase text-xs mb-3">Tech Stack</p>
+        <h2 class="font-serif italic text-3xl md:text-4xl text-white">기술 스택</h2>
+      </div>
+
+      <div class="reveal grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="skill-tag brand-panel p-5 rounded-2xl hover:border-nuvia-purple/40 transition-all duration-300 cursor-default text-center">
+          <div class="text-2xl mb-3 font-black text-nuvia-purple">H5</div>
+          <div class="font-bold text-white text-sm">HTML5</div>
+          <div class="text-xs text-white/40 mt-1">Semantic Markup</div>
+        </div>
+        <div class="skill-tag brand-panel p-5 rounded-2xl hover:border-nuvia-purple/40 transition-all duration-300 cursor-default text-center">
+          <div class="text-2xl mb-3 font-black text-nuvia-purple">C3</div>
+          <div class="font-bold text-white text-sm">CSS3</div>
+          <div class="text-xs text-white/40 mt-1">Animations</div>
+        </div>
+        <div class="skill-tag brand-panel p-5 rounded-2xl hover:border-nuvia-purple/40 transition-all duration-300 cursor-default text-center">
+          <div class="text-2xl mb-3 font-black text-nuvia-purple">JS</div>
+          <div class="font-bold text-white text-sm">JavaScript</div>
+          <div class="text-xs text-white/40 mt-1">ES6+ / DOM</div>
+        </div>
+        <div class="skill-tag brand-panel p-5 rounded-2xl hover:border-nuvia-purple/40 transition-all duration-300 cursor-default text-center">
+          <div class="text-2xl mb-3 font-black text-nuvia-purple">TW</div>
+          <div class="font-bold text-white text-sm">Tailwind</div>
+          <div class="text-xs text-white/40 mt-1">Utility-First</div>
+        </div>
+        <div class="skill-tag brand-panel p-5 rounded-2xl hover:border-nuvia-purple/40 transition-all duration-300 cursor-default text-center">
+          <div class="text-2xl mb-3 font-black text-nuvia-purple">Rx</div>
+          <div class="font-bold text-white text-sm">React</div>
+          <div class="text-xs text-white/40 mt-1">Components</div>
+        </div>
+        <div class="skill-tag brand-panel p-5 rounded-2xl hover:border-nuvia-purple/40 transition-all duration-300 cursor-default text-center">
+          <div class="text-2xl mb-3 font-black text-nuvia-purple">Nd</div>
+          <div class="font-bold text-white text-sm">Node.js</div>
+          <div class="text-xs text-white/40 mt-1">Backend / API</div>
+        </div>
+        <div class="skill-tag brand-panel p-5 rounded-2xl hover:border-nuvia-purple/40 transition-all duration-300 cursor-default text-center">
+          <div class="text-2xl mb-3 font-black text-nuvia-purple">Gt</div>
+          <div class="font-bold text-white text-sm">Git</div>
+          <div class="text-xs text-white/40 mt-1">Version Control</div>
+        </div>
+        <div class="skill-tag brand-panel p-5 rounded-2xl hover:border-nuvia-purple/40 transition-all duration-300 cursor-default text-center">
+          <div class="text-2xl mb-3 font-black text-nuvia-purple">Fg</div>
+          <div class="font-bold text-white text-sm">Figma</div>
+          <div class="text-xs text-white/40 mt-1">UI Design</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Projects ── -->
+  <section id="projects" class="py-24 px-6 border-t border-white/5">
+    <div class="max-w-6xl mx-auto">
+      <div class="reveal text-center mb-16">
+        <p class="text-nuvia-purple font-bold tracking-[0.2em] uppercase text-xs mb-3">Portfolio</p>
+        <h2 class="font-serif italic text-3xl md:text-4xl text-white">프로젝트</h2>
+      </div>
+
+      <div class="reveal grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="project-card brand-panel rounded-2xl overflow-hidden cursor-pointer">
+          <div class="project-thumb h-48 bg-nuvia-purple/15 halftone flex items-center justify-center border-b border-white/5">
+            <span class="project-num text-4xl font-black text-nuvia-purple/60">01</span>
+          </div>
+          <div class="p-6">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="text-xs font-bold px-2 py-1 rounded-full bg-nuvia-purple/20 text-nuvia-purple uppercase tracking-wider">Web App</span>
+              <span class="text-xs font-bold px-2 py-1 rounded-full bg-white/5 text-white/50 uppercase tracking-wider">완료</span>
+            </div>
+            <h3 class="text-lg font-bold text-white mb-2">E-Commerce Site</h3>
+            <p class="text-sm text-white/40 leading-relaxed mb-4">
+              쇼핑몰 웹사이트 프로젝트. 상품 목록, 장바구니, 결제 플로우를 구현했습니다.
+            </p>
+            <div class="flex flex-wrap gap-2 mb-4">
+              <span class="text-xs px-2 py-1 rounded bg-white/5 text-white/50">React</span>
+              <span class="text-xs px-2 py-1 rounded bg-white/5 text-white/50">Node.js</span>
+              <span class="text-xs px-2 py-1 rounded bg-white/5 text-white/50">MongoDB</span>
+            </div>
+            <div class="flex gap-3">
+              <a href="#" class="text-xs text-nuvia-purple hover:text-white font-bold uppercase tracking-wider transition-colors">GitHub →</a>
+              <a href="#" class="text-xs text-white/40 hover:text-white font-bold uppercase tracking-wider transition-colors">Demo →</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="project-card brand-panel rounded-2xl overflow-hidden cursor-pointer">
+          <div class="project-thumb h-48 bg-nuvia-purple/10 flex items-center justify-center border-b border-white/5 relative overflow-hidden">
+            <div class="absolute inset-0 halftone opacity-40"></div>
+            <span class="project-num text-4xl font-black text-nuvia-purple/60 relative">02</span>
+          </div>
+          <div class="p-6">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="text-xs font-bold px-2 py-1 rounded-full bg-nuvia-purple/20 text-nuvia-purple uppercase tracking-wider">Tool</span>
+              <span class="text-xs font-bold px-2 py-1 rounded-full bg-white/5 text-white/50 uppercase tracking-wider">완료</span>
+            </div>
+            <h3 class="text-lg font-bold text-white mb-2">Task Manager App</h3>
+            <p class="text-sm text-white/40 leading-relaxed mb-4">
+              드래그앤드롭 기반의 칸반 보드 태스크 관리 앱. 로컬 스토리지로 데이터를 저장합니다.
+            </p>
+            <div class="flex flex-wrap gap-2 mb-4">
+              <span class="text-xs px-2 py-1 rounded bg-white/5 text-white/50">Vanilla JS</span>
+              <span class="text-xs px-2 py-1 rounded bg-white/5 text-white/50">CSS Grid</span>
+            </div>
+            <div class="flex gap-3">
+              <a href="#" class="text-xs text-nuvia-purple hover:text-white font-bold uppercase tracking-wider transition-colors">GitHub →</a>
+              <a href="#" class="text-xs text-white/40 hover:text-white font-bold uppercase tracking-wider transition-colors">Demo →</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="project-card brand-panel rounded-2xl overflow-hidden cursor-pointer">
+          <div class="project-thumb h-48 bg-nuvia-purple/20 flex items-center justify-center border-b border-white/5">
+            <span class="project-num text-4xl font-black text-nuvia-purple/60">03</span>
+          </div>
+          <div class="p-6">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="text-xs font-bold px-2 py-1 rounded-full bg-nuvia-purple/20 text-nuvia-purple uppercase tracking-wider">API</span>
+              <span class="text-xs font-bold px-2 py-1 rounded-full bg-nuvia-purple/10 text-nuvia-purple/70 uppercase tracking-wider">진행 중</span>
+            </div>
+            <h3 class="text-lg font-bold text-white mb-2">Weather Dashboard</h3>
+            <p class="text-sm text-white/40 leading-relaxed mb-4">
+              OpenWeather API를 활용한 날씨 대시보드. 실시간 날씨와 5일 예보를 시각화합니다.
+            </p>
+            <div class="flex flex-wrap gap-2 mb-4">
+              <span class="text-xs px-2 py-1 rounded bg-white/5 text-white/50">JavaScript</span>
+              <span class="text-xs px-2 py-1 rounded bg-white/5 text-white/50">REST API</span>
+            </div>
+            <div class="flex gap-3">
+              <a href="#" class="text-xs text-nuvia-purple hover:text-white font-bold uppercase tracking-wider transition-colors">GitHub →</a>
+              <a href="#" class="text-xs text-white/40 hover:text-white font-bold uppercase tracking-wider transition-colors">Demo →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Contact ── -->
+  <section id="contact" class="py-24 px-6 border-t border-white/5">
+    <div class="max-w-2xl mx-auto text-center">
+      <div class="reveal">
+        <p class="text-nuvia-purple font-bold tracking-[0.2em] uppercase text-xs mb-3">Contact</p>
+        <h2 class="font-serif italic text-3xl md:text-4xl text-white mb-4">연락하기</h2>
+        <p class="font-serif italic text-white/50 mb-10">
+          새로운 기회나 협업 제안은 언제든 환영합니다.
+        </p>
+
+        <div class="flex flex-col sm:flex-row gap-4 justify-center mb-10">
+          <a href="mailto:your@email.com"
+             class="group flex items-center gap-3 px-6 py-4 rounded-2xl brand-panel
+                    hover:border-nuvia-purple/40 text-white/60 hover:text-white transition-all duration-300">
+            <svg class="w-5 h-5 text-nuvia-purple flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+            </svg>
+            <div class="text-left">
+              <div class="text-xs text-white/30 mb-0.5 uppercase tracking-wider">Email</div>
+              <div class="text-sm font-medium">your@email.com</div>
+            </div>
+          </a>
+          <a href="https://github.com/yourusername" target="_blank" rel="noopener noreferrer"
+             class="group flex items-center gap-3 px-6 py-4 rounded-2xl brand-panel
+                    hover:border-nuvia-purple/40 text-white/60 hover:text-white transition-all duration-300">
+            <svg class="w-5 h-5 text-nuvia-purple flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.57v-2.02c-3.34.73-4.04-1.61-4.04-1.61-.54-1.38-1.33-1.75-1.33-1.75-1.09-.74.08-.73.08-.73 1.2.08 1.84 1.23 1.84 1.23 1.07 1.84 2.8 1.3 3.49 1 .1-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02.005 2.04.14 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.61-2.8 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .31.21.69.82.57C20.56 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z"/>
+            </svg>
+            <div class="text-left">
+              <div class="text-xs text-white/30 mb-0.5 uppercase tracking-wider">GitHub</div>
+              <div class="text-sm font-medium">@yourusername</div>
+            </div>
+          </a>
+        </div>
+
+        <div class="p-8 rounded-2xl brand-panel border-nuvia-purple/20 relative overflow-hidden">
+          <div class="absolute inset-0 purple-glow opacity-50 pointer-events-none"></div>
+          <p class="font-serif italic text-white/60 text-sm leading-relaxed relative">
+            프리랜서 의뢰, 취업 문의, 혹은 그냥 안녕하세요 한마디도 좋아요.
+          </p>
+          <a href="mailto:your@email.com"
+             class="relative inline-flex items-center gap-2 mt-6 px-8 py-3 rounded-full font-bold text-sm uppercase tracking-wider text-white
+                    bg-nuvia-purple hover:bg-[#6b5cf5]
+                    shadow-lg shadow-nuvia-purple/30 transition-all duration-300 hover:scale-105">
+            이메일 보내기 →
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Footer ── -->
+  <footer class="py-16 md:py-24 px-6 border-t border-white/5 mt-8">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8 md:gap-12">
+      <div class="flex items-center gap-2">
+        <svg class="w-5 h-5" viewBox="0 0 32 32" fill="none">
+          <path d="M4 28V4L16 20L28 4V28" stroke="#5847F3" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <p class="text-white/30 text-sm lowercase">
+          © 2026 <span class="text-white/50 font-medium">your name</span>
+        </p>
+      </div>
+      <p class="text-white/20 text-xs uppercase tracking-widest">
+        HTML · Tailwind · JavaScript
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 50) {
+        navbar.classList.add('bg-[#111213]/90', 'backdrop-blur-md', 'border-b', 'border-white/5');
+      } else {
+        navbar.classList.remove('bg-[#111213]/90', 'backdrop-blur-md', 'border-b', 'border-white/5');
+      }
+    });
+
+    const menuBtn = document.getElementById('menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    menuBtn.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+    function closeMobileMenu() { mobileMenu.classList.add('hidden'); }
+
+    const revealEls = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+    revealEls.forEach(el => observer.observe(el));
+
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('nav a[href^="#"]');
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(section => {
+        if (window.scrollY >= section.offsetTop - 120) current = section.getAttribute('id');
+      });
+      navLinks.forEach(link => {
+        link.classList.remove('text-white');
+        if (link.getAttribute('href') === '#' + current) link.classList.add('text-white');
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,307 @@
+/* ============================================
+   나의 버킷 리스트 - 모던 UI 디자인
+   ============================================ */
+
+/* 배경 그라데이션 */
+body {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #2563eb 100%);
+    background-attachment: fixed;
+}
+
+/* 헤더 타이틀 그라데이션 텍스트 */
+header h1 {
+    background: linear-gradient(135deg, #ffffff 0%, #c4b5fd 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.2));
+}
+
+header p {
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-size: 1.05rem;
+}
+
+/* 카드 공통 - 흰 배경 오버라이드 */
+.card-section {
+    background: rgba(255, 255, 255, 0.97);
+    backdrop-filter: blur(12px);
+    border-radius: 20px !important;
+    box-shadow: 0 4px 24px rgba(31, 38, 135, 0.15), 0 1px 4px rgba(31, 38, 135, 0.08) !important;
+    transition: box-shadow 0.3s ease;
+}
+
+/* 통계 개별 박스 */
+.stat-box {
+    border-radius: 14px;
+    padding: 14px 16px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: default;
+}
+
+.stat-box:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.stat-total    { background: linear-gradient(135deg, #dbeafe, #bfdbfe); }
+.stat-complete { background: linear-gradient(135deg, #d1fae5, #a7f3d0); }
+.stat-progress { background: linear-gradient(135deg, #fef3c7, #fde68a); }
+.stat-rate     { background: linear-gradient(135deg, #ede9fe, #ddd6fe); }
+
+/* 입력 필드 */
+#bucketInput {
+    border: 2px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    font-size: 1rem;
+    background: #fafafa;
+    transition: all 0.3s ease;
+}
+
+#bucketInput:focus {
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15) !important;
+    background: white;
+    outline: none;
+}
+
+/* 추가 버튼 */
+#bucketForm button[type="submit"] {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
+    border-radius: 12px !important;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+    transition: all 0.3s ease !important;
+    border: none;
+}
+
+#bucketForm button[type="submit"]:hover {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed) !important;
+    box-shadow: 0 6px 22px rgba(99, 102, 241, 0.55);
+    transform: translateY(-2px);
+}
+
+/* 필터 버튼 */
+.filter-btn {
+    background: rgba(99, 102, 241, 0.1);
+    color: #4f46e5;
+    border: 2px solid transparent;
+    border-radius: 50px !important;
+    padding: 8px 22px;
+    font-weight: 600;
+    transition: all 0.25s ease;
+}
+
+.filter-btn:hover {
+    background: rgba(99, 102, 241, 0.18);
+    border-color: rgba(99, 102, 241, 0.3);
+    transform: translateY(-1px);
+}
+
+.filter-btn.active {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
+    color: white !important;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+    border-color: transparent;
+}
+
+/* 버킷 아이템 카드 */
+.bucket-item {
+    background: white;
+    border-radius: 14px !important;
+    border-left: 4px solid #6366f1;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07) !important;
+    transition: all 0.25s ease !important;
+    animation: slideIn 0.3s ease-out;
+    padding: 16px 18px !important;
+}
+
+.bucket-item:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.14) !important;
+    transform: translateY(-3px);
+}
+
+.bucket-item.completed-item {
+    border-left-color: #10b981;
+    background: linear-gradient(to right, #f0fdf4, #ffffff) !important;
+}
+
+/* 완료된 텍스트 */
+.bucket-item .line-through {
+    text-decoration: line-through;
+    opacity: 0.5;
+}
+
+/* 체크박스 버튼 */
+.bucket-item button:first-child {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.bucket-item button:first-child:hover {
+    transform: scale(1.15);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* 수정 버튼 */
+.btn-edit {
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+    color: #2563eb;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.btn-edit:hover {
+    background: linear-gradient(135deg, #bfdbfe, #93c5fd);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+}
+
+/* 삭제 버튼 */
+.btn-delete {
+    background: linear-gradient(135deg, #fee2e2, #fecaca);
+    color: #dc2626;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.btn-delete:hover {
+    background: linear-gradient(135deg, #fecaca, #fca5a5);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(220, 38, 38, 0.25);
+}
+
+/* 빈 상태 */
+#emptyState p {
+    color: rgba(255, 255, 255, 0.75) !important;
+}
+
+/* 빈 상태 이모지 */
+#emptyState .empty-icon {
+    font-size: 3.5rem;
+    margin-bottom: 12px;
+    opacity: 0.8;
+}
+
+/* 모달 */
+#editModal {
+    animation: fadeIn 0.2s ease-in;
+    backdrop-filter: blur(4px);
+}
+
+#editModal > div {
+    border-radius: 20px !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35) !important;
+    animation: scaleIn 0.22s ease-out;
+}
+
+#editModal h3 {
+    color: #1e1b4b;
+    font-size: 1.25rem;
+}
+
+#editInput {
+    border: 2px solid #e5e7eb;
+    border-radius: 10px !important;
+    transition: all 0.3s ease;
+}
+
+#editInput:focus {
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15) !important;
+    outline: none;
+}
+
+#cancelEdit {
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    transition: all 0.25s ease !important;
+    background: #f3f4f6 !important;
+    color: #4b5563 !important;
+}
+
+#cancelEdit:hover {
+    background: #e5e7eb !important;
+    transform: translateY(-1px);
+}
+
+#editForm button[type="submit"] {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+    transition: all 0.25s ease !important;
+}
+
+#editForm button[type="submit"]:hover {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(99, 102, 241, 0.5);
+}
+
+/* 버튼 클릭 효과 */
+button:active {
+    transform: scale(0.96) !important;
+}
+
+/* 통계 숫자 전환 애니메이션 */
+#totalCount, #completedCount, #progressCount, #completionRate {
+    transition: all 0.3s ease;
+}
+
+/* 스크롤바 */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.1); border-radius: 4px; }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.4); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.6); }
+
+/* 애니메이션 정의 */
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(-12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.93); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+#emptyState { animation: fadeIn 0.5s ease-in; }
+
+/* 반응형 */
+@media (max-width: 640px) {
+    .bucket-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .bucket-item > div:last-child {
+        width: 100%;
+        justify-content: flex-end;
+        margin-top: 8px;
+    }
+
+    .filter-btn {
+        font-size: 0.875rem;
+        padding: 6px 14px;
+    }
+
+    .stat-box {
+        padding: 10px 8px;
+    }
+}
