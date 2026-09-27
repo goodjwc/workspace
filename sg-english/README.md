@@ -18,6 +18,10 @@
 
 **https://goodjwc.github.io/workspace/sg-english/** (GitHub Pages, `main` 브랜치에서 배포)
 
+폰 카메라로 QR 코드를 찍으면 바로 열립니다.
+
+<img src="icons/qr.png" alt="앱 주소 QR 코드" width="200">
+
 ## 실행 (로컬)
 
 ```bash
