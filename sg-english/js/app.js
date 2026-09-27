@@ -394,10 +394,21 @@ class App {
     this.render();
     let heard = [];
     try { heard = await handle.promise; } catch (err) {
-      this.toast(err === 'not-allowed' ? '마이크 권한을 허용해 주세요.' : '음성 인식 오류: ' + err);
+      const messages = {
+        'not-allowed': '마이크 권한이 거부됐어요. 브라우저 설정에서 마이크를 허용해 주세요.',
+        'service-not-allowed': '이 환경에서는 음성 인식을 쓸 수 없어요. 녹음·비교로 연습해 주세요. (iPhone은 Safari 앱에서 열면 될 수 있어요)',
+        'audio-capture': '마이크를 찾을 수 없어요.',
+        'network': '음성 인식에 인터넷 연결이 필요해요. 연결 후 다시 해 보세요.',
+        'language-not-supported': '이 기기에서 영어 음성 인식을 지원하지 않아요. 녹음·비교로 연습해 주세요.'
+      };
+      this.toast(messages[err] || '음성 인식 오류: ' + err);
+      // 다시 시도해도 안 되는 오류면 이번 세션은 녹음 방식으로 전환
+      if (['not-allowed', 'service-not-allowed', 'language-not-supported'].includes(err)) Speech.recognitionBroken = true;
     }
     if (this.listener !== handle) return; // 화면 이동 등으로 취소됨
     this.listener = null;
+    // 음성 인식을 못 쓰게 됐으면 정답을 공개하지 않고 녹음 버튼이 있는 화면으로 되돌린다
+    if (Speech.recognitionBroken) { this.render(); return; }
     const result = Speech.score(item.a, heard);
     if (!heard.length) result.heard = '';
     const best = Store.prog(id).best;

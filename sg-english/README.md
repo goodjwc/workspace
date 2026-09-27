@@ -14,7 +14,11 @@
   - 음성 인식 채점: 단어 일치율로 0~100점을 매기고, 빠뜨리거나 틀린 단어를 표시합니다.
 - 오프라인에서도 동작하고(서비스 워커), 학습 기록은 기기에 저장됩니다(localStorage).
 
-## 실행
+## 앱 주소
+
+**https://goodjwc.github.io/workspace/sg-english/** (GitHub Pages, `main` 브랜치에서 배포)
+
+## 실행 (로컬)
 
 ```bash
 cd sg-english
@@ -23,7 +27,7 @@ python3 -m http.server 8000   # http://localhost:8000
 
 ## 폰에서 쓰기
 
-녹음과 음성 인식은 **HTTPS** 주소에서만 동작합니다. 예를 들어 GitHub Pages에 올린 뒤 폰 브라우저로 여세요.
+녹음과 음성 인식은 **HTTPS** 주소에서만 동작합니다. 위 앱 주소를 폰 브라우저로 여세요.
 
 - iPhone(Safari): 공유 → **홈 화면에 추가**
 - Android(Chrome): 메뉴 → **앱 설치** 또는 **홈 화면에 추가**

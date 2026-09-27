@@ -27,14 +27,25 @@ const Speech = {
   speak(text, { voiceName, prefer = ['en-us'], rate = 1 } = {}) {
     return new Promise(resolve => {
       if (!this.ttsSupported) return resolve();
-      speechSynthesis.cancel();
+      // iOS Safari: cancel() 직후 곧바로 speak()하면 소리가 씹히는 경우가 있어,
+      // 재생 중일 때만 취소하고 잠깐 뒤에 말한다
+      const busy = speechSynthesis.speaking || speechSynthesis.pending;
+      if (busy) speechSynthesis.cancel();
       // "A / B" 형태의 답변은 둘 다 읽어 줌
       const u = new SpeechSynthesisUtterance(text.replace(/\s*\/\s*/g, '. '));
       const voice = this.pickVoice(voiceName, prefer);
-      if (voice) { u.voice = voice; u.lang = voice.lang; } else { u.lang = 'en-US'; }
+      u.lang = voice ? voice.lang : 'en-US';
+      try { if (voice) u.voice = voice; } catch { /* 음성 지정 실패 시 언어 기본 음성으로 재생 */ }
       u.rate = rate;
-      u.onend = u.onerror = () => resolve();
-      speechSynthesis.speak(u);
+      // Chrome: utterance가 가비지 컬렉션되면 onend가 안 오는 문제 → 참조 유지
+      this._utterance = u;
+      let finished = false;
+      const finish = () => { if (!finished) { finished = true; clearTimeout(guard); resolve(); } };
+      u.onend = u.onerror = finish;
+      // onend가 끝내 오지 않는 브라우저 대비 (글자 수 기준 넉넉한 시간)
+      const guard = setTimeout(finish, 2000 + text.length * 150 / rate);
+      const go = () => { speechSynthesis.resume(); speechSynthesis.speak(u); };
+      if (busy) setTimeout(go, 80); else go();
     });
   },
 
@@ -62,7 +73,9 @@ const Speech = {
 
   // ---------- 음성 인식 ----------
   get RecognitionCtor() { return window.SpeechRecognition || window.webkitSpeechRecognition || null; },
-  get recognitionSupported() { return !!this.RecognitionCtor; },
+  // 권한 거부·서비스 불가 등으로 이번 세션에서 쓸 수 없게 된 경우 true → 녹음 방식으로 대체
+  recognitionBroken: false,
+  get recognitionSupported() { return !!this.RecognitionCtor && !this.recognitionBroken; },
 
   // 한 번 듣고 결과 후보 목록을 반환. handle.stop()으로 조기 종료 가능
   listen({ onInterim } = {}) {
