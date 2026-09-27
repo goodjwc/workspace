@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="0" fill="#d7263d"/>
+  <path d="M136 150h240a40 40 0 0 1 40 40v120a40 40 0 0 1-40 40H250l-70 56v-56h-44a40 40 0 0 1-40-40V190a40 40 0 0 1 40-40z" fill="#fff"/>
+  <text x="256" y="283" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="112" font-weight="800" fill="#d7263d">SG</text>
+</svg>
