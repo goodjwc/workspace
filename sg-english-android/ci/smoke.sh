@@ -12,13 +12,17 @@ adb logcat -c
 adb shell am start -n $PKG/.MainActivity --ez selftest true
 
 RESULT=""
-for i in $(seq 1 60); do
+for i in $(seq 1 90); do
   sleep 2
   RESULT=$(adb logcat -d -s SGEnglishJS:* | grep -o 'SELFTEST_RESULT .*' | head -1 || true)
   [ -n "$RESULT" ] && break
 done
 
 adb logcat -d -s SGEnglish:* SGEnglishJS:* > "$OUT/logcat.txt" || true
+echo "----- TTS 환경 -----"
+adb shell pm list packages | grep -i -E 'tts|speech' || true
+adb shell settings get secure tts_default_synth || true
+adb logcat -d | grep -i -E 'TextToSpeech|TtsService|GoogleTTS|tts' | tail -40 || true
 adb exec-out screencap -p > "$OUT/screen.png" || true
 echo "----- app log -----"
 cat "$OUT/logcat.txt"

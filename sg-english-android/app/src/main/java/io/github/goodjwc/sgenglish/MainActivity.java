@@ -175,9 +175,17 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
         ttsReady = status == TextToSpeech.SUCCESS;
         Log.i(TAG, "TTS init status=" + status);
         if (!ttsReady) return;
+        try {
+            StringBuilder engines = new StringBuilder();
+            for (TextToSpeech.EngineInfo e : tts.getEngines()) engines.append(e.name).append(' ');
+            Set<Voice> all = tts.getVoices();
+            Log.i(TAG, "TTS engine default=" + tts.getDefaultEngine() + " engines=" + engines
+                    + " voices=" + (all == null ? "null" : all.size())
+                    + " en-US=" + tts.isLanguageAvailable(Locale.US));
+        } catch (Exception e) { Log.w(TAG, "TTS info failed", e); }
         tts.setLanguage(Locale.US);
         tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
-            @Override public void onStart(String id) { }
+            @Override public void onStart(String id) { Log.i(TAG, "TTS start " + id); }
             @Override public void onDone(String id) {
                 Log.i(TAG, "TTS done " + id);
                 if (SELFTEST_SYNTH_ID.equals(id)) {
@@ -187,7 +195,8 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
                 notifyDone(id);
             }
             @Override public void onError(String id) { Log.w(TAG, "TTS error " + id); notifyDone(id); }
-            @Override public void onStop(String id, boolean interrupted) { notifyDone(id); }
+            @Override public void onError(String id, int code) { Log.w(TAG, "TTS error " + id + " code=" + code); notifyDone(id); }
+            @Override public void onStop(String id, boolean interrupted) { Log.i(TAG, "TTS stop " + id); notifyDone(id); }
         });
         js("window.__ttsReady && window.__ttsReady()");
     }
@@ -279,14 +288,15 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
         if (selftestStarted || !getIntent().getBooleanExtra("selftest", false)) return;
         selftestStarted = true;
         final String code = readRaw(R.raw.selftest);
-        web.postDelayed(() -> web.evaluateJavascript(code, null), 3000);
-        // 스피커가 없는 CI 에뮬레이터에서도 확인할 수 있도록, 영어 문장을 음성 파일로 합성해 본다
+        // 스피커가 없는 CI 에뮬레이터에서도 확인할 수 있도록, 영어 문장을 음성 파일로 먼저 합성해 본다
         web.postDelayed(() -> {
             if (!ttsReady) { Log.w(TAG, "TTS synth skipped: not ready"); return; }
             tts.setLanguage(Locale.US);
             int r = tts.synthesizeToFile("Here you go.", new Bundle(), selftestFile(), SELFTEST_SYNTH_ID);
             Log.i(TAG, "TTS synth request=" + r);
-        }, 1500);
+        }, 3000);
+        // 합성이 다른 재생에 끊기지 않도록 충분히 기다린 뒤 화면 점검 실행
+        web.postDelayed(() -> web.evaluateJavascript(code, null), 45000);
     }
 
     private String readRaw(int id) {
