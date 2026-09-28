@@ -1,0 +1,49 @@
+plugins {
+    id 'com.android.application'
+}
+
+// 서명 정보는 환경 변수로 받는다 (CI에서 설정)
+def env = System.getenv()
+
+android {
+    namespace 'io.github.goodjwc.sgenglish'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'io.github.goodjwc.sgenglish'
+        minSdk 24
+        targetSdk 34
+        versionCode((project.findProperty('versionCode') ?: '1') as int)
+        versionName project.findProperty('versionName') ?: '1.0.0'
+    }
+
+    // 웹앱(sg-english/)을 그대로 앱 안에 넣는다
+    sourceSets {
+        main {
+            assets.srcDirs = ['../../sg-english']
+        }
+    }
+
+    signingConfigs {
+        release {
+            if (env.KEYSTORE_FILE) {
+                storeFile file(env.KEYSTORE_FILE)
+                storePassword env.KEYSTORE_PASSWORD
+                keyAlias env.KEY_ALIAS
+                keyPassword env.KEY_PASSWORD
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (env.KEYSTORE_FILE) signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}

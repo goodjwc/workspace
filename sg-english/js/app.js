@@ -39,9 +39,9 @@ class App {
     this.listener = null;   // 음성 인식 중인 핸들
     Store.load();
     Speech.loadVoices();
-    if (Speech.ttsSupported) {
-      speechSynthesis.onvoiceschanged = () => { Speech.loadVoices(); if (this.view === 'settings') this.render(); };
-    }
+    const onVoices = () => { Speech.loadVoices(); if (this.view === 'settings') this.render(); };
+    if (Speech.isApp) window.__ttsReady = onVoices; // 앱: 폰 TTS 엔진 준비 완료 시 네이티브가 호출
+    else if ('speechSynthesis' in window) speechSynthesis.onvoiceschanged = onVoices;
     this.root.addEventListener('click', e => this.onClick(e));
     this.root.addEventListener('change', e => this.onChange(e));
     this.root.addEventListener('input', e => this.onChange(e));
@@ -129,7 +129,7 @@ class App {
     const pct = Math.round((known / total) * 100);
     const warn = [];
     if (!Speech.ttsSupported) warn.push('이 브라우저는 음성 듣기(TTS)를 지원하지 않아요.');
-    if (!Speech.recognitionSupported) warn.push('이 브라우저는 음성 인식 채점을 지원하지 않아요. 녹음·비교 기능으로 연습할 수 있어요. (Android Chrome, iOS Safari 최신 버전 권장)');
+    if (!Speech.recognitionSupported && !Speech.isApp) warn.push('이 브라우저는 음성 인식 채점을 지원하지 않아요. 녹음·비교 기능으로 연습할 수 있어요. (Android Chrome, iOS Safari 최신 버전 권장)');
     return `
       <header class="top">
         <div>
@@ -626,7 +626,7 @@ class App {
     const voices = Speech.loadVoices();
     const themV = Speech.pickVoice(s.voiceThem, ['en-sg', 'en-gb', 'en-au', 'en-in', 'en-us']);
     const meV = Speech.pickVoice(s.voiceMe, ['en-us', 'en-gb']);
-    const opts = sel => voices.map(v => `<option value="${esc(v.name)}" ${sel && sel.name === v.name ? 'selected' : ''}>${esc(v.name)} (${esc(v.lang)})</option>`).join('');
+    const opts = sel => voices.map(v => `<option value="${esc(v.name)}" ${sel && sel.name === v.name ? 'selected' : ''}>${esc(v.name)} (${esc(v.lang)}${v.offline === false ? ' · 인터넷 필요' : ''})</option>`).join('');
     return `
       <header class="bar-head">
         <button class="icon-btn" data-action="back" aria-label="뒤로">←</button>
@@ -646,7 +646,7 @@ class App {
         </label>
         <button class="btn" data-action="testVoice" data-arg="me">🔊 정답 음성 테스트</button>
         <p class="small">싱가포르 영어(en-SG)나 영국식(en-GB) 음성이 있으면 상대 음성으로 먼저 골라 둡니다. 음성 목록은 기기마다 다릅니다.</p>
-        ` : `<p class="notice">${Speech.ttsSupported ? '영어 음성을 불러오는 중이거나, 기기에 영어 음성이 없어요. 기기 설정 → 텍스트 음성 변환에서 영어 음성을 설치해 주세요.' : '이 브라우저는 음성 듣기를 지원하지 않아요.'}</p>`}
+        ` : `<p class="notice">${Speech.ttsSupported ? '영어 음성을 불러오는 중이거나, 기기에 영어 음성이 없어요. 폰 설정 → 텍스트 음성 변환(TTS)에서 영어 음성 데이터를 설치해 주세요.' : '이 브라우저는 음성 듣기를 지원하지 않아요.'}</p>`}
         <label class="switch"><input type="checkbox" data-setting="subtitles" ${s.subtitles ? 'checked' : ''}> 롤플레이에서 상대 말 자막 보기</label>
       </section>
       <section class="card form">
@@ -654,11 +654,13 @@ class App {
         <button class="btn bad" data-action="resetProgress">기록 초기화</button>
       </section>
       <section class="card form small">
-        <p><strong>지원 현황 (이 브라우저)</strong></p>
+        <p><strong>지원 현황 (${Speech.isApp ? '안드로이드 앱' : '이 브라우저'})</strong></p>
         <p>원어민 음성(TTS): ${Speech.ttsSupported ? '✅' : '❌'}<br>
         녹음: ${Speech.recordSupported ? '✅' : '❌'}<br>
-        음성 인식 채점: ${Speech.recognitionSupported ? '✅' : '❌'}</p>
-        <p>음성 인식은 브라우저가 제공하는 기능이라 Chrome에서는 인터넷 연결이 필요할 수 있어요. 녹음과 음성 인식은 HTTPS 주소에서만 동작합니다.</p>
+        음성 인식 채점: ${Speech.isApp ? '➖ 앱 버전에는 없음' : Speech.recognitionSupported ? '✅' : '❌'}</p>
+        ${Speech.isApp
+          ? '<p>앱은 인터넷 없이 동작합니다. 원어민 음성은 폰의 TTS 엔진을 쓰므로, "인터넷 필요"로 표시되지 않은 음성을 고르면 오프라인에서도 들을 수 있어요.</p>'
+          : '<p>음성 인식은 브라우저가 제공하는 기능이라 Chrome에서는 인터넷 연결이 필요할 수 있어요. 녹음과 음성 인식은 HTTPS 주소에서만 동작합니다.</p>'}
       </section>`;
   }
 
@@ -674,6 +676,7 @@ class App {
 
 const app = new App();
 
-if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+// 앱(APK)은 파일이 앱 안에 들어 있으므로 서비스 워커가 필요 없다
+if ('serviceWorker' in navigator && location.protocol !== 'file:' && !Speech.isApp) {
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 }

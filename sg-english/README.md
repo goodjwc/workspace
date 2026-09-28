@@ -22,6 +22,11 @@
 
 <img src="icons/qr.png" alt="앱 주소 QR 코드" width="200">
 
+## 안드로이드 앱 (오프라인 APK)
+
+인터넷 없이 쓰려면 Releases에서 APK를 내려받아 설치하세요: https://github.com/goodjwc/workspace/releases
+자세한 내용은 [`../sg-english-android/README.md`](../sg-english-android/README.md)를 보세요.
+
 ## 실행 (로컬)
 
 ```bash

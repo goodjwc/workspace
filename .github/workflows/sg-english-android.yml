@@ -1,0 +1,158 @@
+name: SG English Android APK
+
+# - 작업 브랜치에 sg-english 관련 변경을 푸시하면: APK 빌드 + 에뮬레이터 점검
+# - sg-english-v* 태그를 푸시하면: 위 과정 후 GitHub Releases에 APK 게시
+on:
+  push:
+    branches: [claude/loving-meitner-r7xtus]
+    paths:
+      - 'sg-english/**'
+      - 'sg-english-android/**'
+      - '.github/workflows/sg-english-android.yml'
+    tags: ['sg-english-v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.ver.outputs.name }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.14.3'
+
+      - name: Version
+        id: ver
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/sg-english-v* ]]; then
+            V="${GITHUB_REF_NAME#sg-english-v}"
+          else
+            V="0.0.${GITHUB_RUN_NUMBER}-dev"
+          fi
+          echo "name=$V" >> "$GITHUB_OUTPUT"
+          echo "code=$GITHUB_RUN_NUMBER" >> "$GITHUB_OUTPUT"
+
+      # 저장소 시크릿에 서명 키가 있으면 사용(업데이트 설치 가능), 없으면 이번 빌드용 키를 새로 만든다
+      - name: Signing key
+        env:
+          KEYSTORE_B64: ${{ secrets.SG_ENGLISH_KEYSTORE_B64 }}
+          KEYSTORE_PASSWORD_SECRET: ${{ secrets.SG_ENGLISH_KEYSTORE_PASSWORD }}
+        run: |
+          KS="$RUNNER_TEMP/release.jks"
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > "$KS"
+            PW="$KEYSTORE_PASSWORD_SECRET"
+            echo "Using signing key from repository secrets"
+          else
+            PW="sgenglish-$GITHUB_RUN_ID"
+            keytool -genkeypair -keystore "$KS" -storepass "$PW" -keypass "$PW" \
+              -alias sgenglish -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=SG English, O=goodjwc"
+            echo "::warning::서명 키 시크릿이 없어 임시 키로 서명했습니다. 다음 버전 설치 시 기존 앱을 지워야 할 수 있습니다."
+          fi
+          echo "::add-mask::$PW"
+          {
+            echo "KEYSTORE_FILE=$KS"
+            echo "KEYSTORE_PASSWORD=$PW"
+            echo "KEY_ALIAS=sgenglish"
+            echo "KEY_PASSWORD=$PW"
+          } >> "$GITHUB_ENV"
+
+      - name: Build APK
+        working-directory: sg-english-android
+        run: gradle --no-daemon assembleRelease -PversionName=${{ steps.ver.outputs.name }} -PversionCode=${{ steps.ver.outputs.code }}
+
+      - name: Verify APK
+        run: |
+          APK=sg-english-android/app/build/outputs/apk/release/app-release.apk
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          "$BT/apksigner" verify --print-certs "$APK"
+          "$BT/aapt2" dump badging "$APK" | head -5
+          echo "--- assets ---"
+          unzip -l "$APK" | grep ' assets/'
+          for f in index.html js/app.js js/data.js js/speech.js css/styles.css; do
+            unzip -l "$APK" | grep -q " assets/$f$" || { echo "missing assets/$f"; exit 1; }
+          done
+          mkdir -p dist
+          cp "$APK" "dist/sg-english-${{ steps.ver.outputs.name }}.apk"
+          ls -la dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apk
+          path: dist/*.apk
+
+  emulator-test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: apk
+          path: dist
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run app on emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          script: bash sg-english-android/ci/smoke.sh "$(ls dist/*.apk | head -1)" smoke-out
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: emulator-smoke
+          path: smoke-out
+
+  release:
+    needs: [build, emulator-test]
+    if: startsWith(github.ref, 'refs/tags/sg-english-v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: apk
+          path: dist
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: 싱가포르 출장 생존영어 v${{ needs.build.outputs.version }} (Android)
+          files: dist/*.apk
+          body: |
+            안드로이드 폰에 설치해서 **인터넷 없이** 쓰는 싱가포르 출장 생존영어 암기 앱입니다.
+
+            ## 설치 방법
+            1. 아래 **Assets**에서 `sg-english-${{ needs.build.outputs.version }}.apk`를 폰에서 눌러 다운로드합니다.
+            2. 다운로드한 파일을 열고, "출처를 알 수 없는 앱" 설치 허용 안내가 나오면 허용한 뒤 **설치**를 누릅니다.
+            3. 홈 화면의 빨간 **SG 영어** 아이콘으로 실행합니다. 설치 뒤에는 인터넷이 필요 없습니다.
+
+            ## 기능
+            - 플래시카드 / 실전 롤플레이 (입국심사·택시·호텔·식당·점보 씨푸드·핵심 10문장, 95문장)
+            - 원어민 음성 듣기 (폰의 TTS 엔진 사용, 속도 조절)
+            - 한글 발음 표기·발음 팁, 내 발음 녹음 → 원어민 음성과 비교
+            - 앱 버전에는 음성 인식 채점이 없습니다
+
+            ## 오프라인 음성 확인
+            원어민 음성은 폰에 설치된 TTS 엔진을 씁니다. 앱의 ⚙️ 설정에서 "인터넷 필요"로 표시되지 않은 영어 음성을 고르면 오프라인에서도 들립니다.
+            음성 목록이 비어 있으면: 폰 설정 → 텍스트 음성 변환(TTS) → 영어 음성 데이터 설치.

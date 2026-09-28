@@ -1,5 +1,5 @@
 // 오프라인 캐시 (캐시할 파일 목록을 바꾸면 VERSION을 올려 주세요)
-const VERSION = 'sg-english-v2';
+const VERSION = 'sg-english-v3';
 const ASSETS = [
   './',
   './index.html',

@@ -3,10 +3,19 @@
 const Speech = {
   voices: [],
 
+  // 안드로이드 앱(APK)에서 실행 중이면 네이티브 브리지가 주입된다.
+  // 앱의 WebView는 브라우저 음성 기능이 없어서 TTS는 폰의 TTS 엔진을 쓰고, 음성 인식 채점은 제외한다.
+  get bridge() { return window.AndroidBridge || null; },
+  get isApp() { return !!this.bridge; },
+
   // ---------- TTS ----------
-  get ttsSupported() { return 'speechSynthesis' in window; },
+  get ttsSupported() { return this.isApp || 'speechSynthesis' in window; },
 
   loadVoices() {
+    if (this.isApp) {
+      try { this.voices = JSON.parse(this.bridge.getVoices()); } catch { this.voices = []; }
+      return this.voices;
+    }
     if (!this.ttsSupported) return [];
     this.voices = speechSynthesis.getVoices().filter(v => /^en[-_]/i.test(v.lang));
     return this.voices;
@@ -25,6 +34,7 @@ const Speech = {
   },
 
   speak(text, { voiceName, prefer = ['en-us'], rate = 1 } = {}) {
+    if (this.isApp) return this._speakNative(text, this.pickVoice(voiceName, prefer), rate);
     return new Promise(resolve => {
       if (!this.ttsSupported) return resolve();
       // iOS Safari: cancel() 직후 곧바로 speak()하면 소리가 씹히는 경우가 있어,
@@ -49,7 +59,32 @@ const Speech = {
     });
   },
 
-  stopSpeaking() { if (this.ttsSupported) speechSynthesis.cancel(); },
+  // 앱: 네이티브 TTS로 말하고, 끝나면 네이티브가 window.__ttsDone(id)를 호출한다
+  _seq: 0,
+  _pending: {},
+  _speakNative(text, voice, rate) {
+    return new Promise(resolve => {
+      const id = 'u' + (++this._seq);
+      const guard = setTimeout(() => this._ttsDone(id), 2000 + text.length * 150 / rate);
+      this._pending[id] = () => { clearTimeout(guard); resolve(); };
+      try {
+        this.bridge.speak(text.replace(/\s*\/\s*/g, '. '), rate, voice ? voice.name : '', id);
+      } catch { this._ttsDone(id); }
+    });
+  },
+  _ttsDone(id) {
+    const done = this._pending[id];
+    if (done) { delete this._pending[id]; done(); }
+  },
+
+  stopSpeaking() {
+    if (this.isApp) {
+      try { this.bridge.stop(); } catch { /* 무시 */ }
+      Object.keys(this._pending).forEach(id => this._ttsDone(id));
+      return;
+    }
+    if (this.ttsSupported) speechSynthesis.cancel();
+  },
 
   // ---------- 녹음 ----------
   get recordSupported() { return !!(navigator.mediaDevices && window.MediaRecorder); },
@@ -75,7 +110,7 @@ const Speech = {
   get RecognitionCtor() { return window.SpeechRecognition || window.webkitSpeechRecognition || null; },
   // 권한 거부·서비스 불가 등으로 이번 세션에서 쓸 수 없게 된 경우 true → 녹음 방식으로 대체
   recognitionBroken: false,
-  get recognitionSupported() { return !!this.RecognitionCtor && !this.recognitionBroken; },
+  get recognitionSupported() { return !this.isApp && !!this.RecognitionCtor && !this.recognitionBroken; },
 
   // 한 번 듣고 결과 후보 목록을 반환. handle.stop()으로 조기 종료 가능
   listen({ onInterim } = {}) {
@@ -201,3 +236,6 @@ const Speech = {
     return { score, words };
   }
 };
+
+// 네이티브(안드로이드 앱)에서 호출하는 콜백
+window.__ttsDone = id => Speech._ttsDone(id);
