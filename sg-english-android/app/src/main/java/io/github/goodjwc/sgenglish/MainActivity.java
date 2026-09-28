@@ -178,7 +178,14 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
         tts.setLanguage(Locale.US);
         tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
             @Override public void onStart(String id) { }
-            @Override public void onDone(String id) { Log.i(TAG, "TTS done " + id); notifyDone(id); }
+            @Override public void onDone(String id) {
+                Log.i(TAG, "TTS done " + id);
+                if (SELFTEST_SYNTH_ID.equals(id)) {
+                    Log.i(TAG, "TTS synth file bytes=" + selftestFile().length());
+                    return;
+                }
+                notifyDone(id);
+            }
             @Override public void onError(String id) { Log.w(TAG, "TTS error " + id); notifyDone(id); }
             @Override public void onStop(String id, boolean interrupted) { notifyDone(id); }
         });
@@ -264,11 +271,22 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
 
     // ---------- CI 자동 점검 (am start --ez selftest true 로 실행했을 때만) ----------
 
+    private static final String SELFTEST_SYNTH_ID = "selftest-synth";
+
+    private java.io.File selftestFile() { return new java.io.File(getCacheDir(), "selftest.wav"); }
+
     private void maybeRunSelftest() {
         if (selftestStarted || !getIntent().getBooleanExtra("selftest", false)) return;
         selftestStarted = true;
         final String code = readRaw(R.raw.selftest);
         web.postDelayed(() -> web.evaluateJavascript(code, null), 3000);
+        // 스피커가 없는 CI 에뮬레이터에서도 확인할 수 있도록, 영어 문장을 음성 파일로 합성해 본다
+        web.postDelayed(() -> {
+            if (!ttsReady) { Log.w(TAG, "TTS synth skipped: not ready"); return; }
+            tts.setLanguage(Locale.US);
+            int r = tts.synthesizeToFile("Here you go.", new Bundle(), selftestFile(), SELFTEST_SYNTH_ID);
+            Log.i(TAG, "TTS synth request=" + r);
+        }, 1500);
     }
 
     private String readRaw(int id) {
