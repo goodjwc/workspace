@@ -9,6 +9,7 @@
     for (let i = 0; i < 30 && !AndroidBridge.isReady(); i++) await wait(500);
     out.ttsReady = AndroidBridge.isReady();
     out.voiceCount = Speech.loadVoices().length;
+    out.englishAvailable = AndroidBridge.hasEnglish();
     out.voices = Speech.voices.slice(0, 5).map(v => v.name + '|' + v.lang + '|' + (v.offline ? 'offline' : 'online'));
     out.recognition = Speech.recognitionSupported;
     out.record = Speech.recordSupported;

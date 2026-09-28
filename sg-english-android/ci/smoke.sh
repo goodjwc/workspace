@@ -25,7 +25,7 @@ cat "$OUT/logcat.txt"
 echo "-------------------"
 
 if [ -z "$RESULT" ]; then echo "FAIL: 자동 점검 결과가 없음"; exit 1; fi
-JSON="${RESULT#SELFTEST_RESULT }"
+JSON="$(echo "${RESULT#SELFTEST_RESULT }" | sed -E 's/ \([^()]*\)$//')"
 echo "$JSON" > "$OUT/selftest.json"
 echo "selftest: $JSON"
 
@@ -43,10 +43,12 @@ check "녹음"                       '.recordOk == true'
 check "뒤로 가기 → 홈"             '.backHome == true'
 check "학습 기록 저장"             '.storage == true'
 check "TTS 엔진 연결"              '.ttsReady == true'
+check "영어 음성 사용 가능"        '.englishAvailable == true or .voiceCount > 0'
 
 if grep -E 'Uncaught|TypeError|ReferenceError|SyntaxError' "$OUT/logcat.txt"; then
   echo "FAIL JS 오류 발생"; fail=1
 fi
-# 에뮬레이터 이미지에 영어 음성이 없을 수 있어 음성 개수·재생 완료는 기록만 한다
-echo "INFO 영어 음성 수: $(echo "$JSON" | jq '.voiceCount'), TTS 재생 완료 로그: $(grep -c 'TTS done' "$OUT/logcat.txt")"
+DONE=$(grep -c 'TTS done' "$OUT/logcat.txt" || true)
+echo "INFO 영어 음성 수: $(echo "$JSON" | jq '.voiceCount'), 재생 시간: $(echo "$JSON" | jq '.speakMs')ms, TTS 재생 완료 로그: $DONE"
+if [ "$DONE" -ge 1 ]; then echo "PASS TTS 실제 재생 완료"; else echo "FAIL TTS 실제 재생 완료 신호 없음"; fail=1; fi
 exit $fail

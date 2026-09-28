@@ -218,6 +218,14 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
         @JavascriptInterface
         public boolean isReady() { return ttsReady; }
 
+        /** 음성 목록이 비어 있어도 기본 영어 음성으로 말할 수 있는지 */
+        @JavascriptInterface
+        public boolean hasEnglish() {
+            if (!ttsReady) return false;
+            try { return tts.isLanguageAvailable(Locale.US) >= TextToSpeech.LANG_AVAILABLE; }
+            catch (Exception e) { return false; }
+        }
+
         @JavascriptInterface
         public String getVoices() {
             JSONArray arr = new JSONArray();

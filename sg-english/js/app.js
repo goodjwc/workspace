@@ -646,7 +646,8 @@ class App {
         </label>
         <button class="btn" data-action="testVoice" data-arg="me">🔊 정답 음성 테스트</button>
         <p class="small">싱가포르 영어(en-SG)나 영국식(en-GB) 음성이 있으면 상대 음성으로 먼저 골라 둡니다. 음성 목록은 기기마다 다릅니다.</p>
-        ` : `<p class="notice">${Speech.ttsSupported ? '영어 음성을 불러오는 중이거나, 기기에 영어 음성이 없어요. 폰 설정 → 텍스트 음성 변환(TTS)에서 영어 음성 데이터를 설치해 주세요.' : '이 브라우저는 음성 듣기를 지원하지 않아요.'}</p>`}
+        ` : Speech.isApp && Speech.bridge.hasEnglish() ? `<p class="small">폰의 기본 영어 음성으로 재생합니다. (음성 목록을 제공하지 않는 TTS 엔진)</p>
+          <button class="btn" data-action="testVoice" data-arg="me">🔊 음성 테스트</button>` : `<p class="notice">${Speech.ttsSupported ? '영어 음성을 불러오는 중이거나, 기기에 영어 음성이 없어요. 폰 설정 → 텍스트 음성 변환(TTS)에서 영어 음성 데이터를 설치해 주세요.' : '이 브라우저는 음성 듣기를 지원하지 않아요.'}</p>`}
         <label class="switch"><input type="checkbox" data-setting="subtitles" ${s.subtitles ? 'checked' : ''}> 롤플레이에서 상대 말 자막 보기</label>
       </section>
       <section class="card form">
