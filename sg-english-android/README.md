@@ -33,8 +33,9 @@
 
 `.github/workflows/sg-english-android.yml`
 
-- 작업 브랜치에 푸시 → APK 빌드 + 에뮬레이터 점검
-- `sg-english-v<버전>` 태그 푸시 → 위 과정을 통과하면 Releases에 APK 게시
+- 작업 브랜치에 푸시 → APK 빌드 + 에뮬레이터 점검 + 비행기용 MP3 생성
+- 릴리즈: `VERSION` 파일의 버전을 올리고 커밋 메시지에 `[release]`를 넣어 푸시(또는 `sg-english-v<버전>` 태그 푸시)
+  → 위 과정을 모두 통과하면 워크플로가 `sg-english-v<버전>` 태그를 만들고 Releases에 APK·MP3를 게시
 
 ### 서명 키 (업데이트 설치용)
 

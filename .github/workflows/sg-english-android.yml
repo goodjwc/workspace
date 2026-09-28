@@ -1,7 +1,8 @@
 name: SG English Android APK + Audio
 
 # - 작업 브랜치에 sg-english 관련 변경을 푸시하면: APK 빌드 + 에뮬레이터 점검
-# - sg-english-v* 태그를 푸시하면: 위 과정 후 GitHub Releases에 APK 게시
+# - sg-english-v* 태그를 푸시하거나, 커밋 메시지에 [release]가 있으면:
+#   위 과정 후 GitHub Releases에 APK·MP3 게시 (버전은 sg-english-android/VERSION, 태그는 워크플로가 생성)
 on:
   push:
     branches: [claude/loving-meitner-r7xtus]
@@ -21,6 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.ver.outputs.name }}
+      release: ${{ steps.ver.outputs.release }}
     steps:
       - uses: actions/checkout@v4
 
@@ -35,13 +37,19 @@ jobs:
 
       - name: Version
         id: ver
+        env:
+          HEAD_MSG: ${{ github.event.head_commit.message }}
         run: |
+          RELEASE=false
           if [[ "$GITHUB_REF" == refs/tags/sg-english-v* ]]; then
-            V="${GITHUB_REF_NAME#sg-english-v}"
+            V="${GITHUB_REF_NAME#sg-english-v}"; RELEASE=true
+          elif [[ "$HEAD_MSG" == *"[release]"* ]]; then
+            V="$(tr -d '[:space:]' < sg-english-android/VERSION)"; RELEASE=true
           else
             V="0.0.${GITHUB_RUN_NUMBER}-dev"
           fi
           echo "name=$V" >> "$GITHUB_OUTPUT"
+          echo "release=$RELEASE" >> "$GITHUB_OUTPUT"
           echo "code=$GITHUB_RUN_NUMBER" >> "$GITHUB_OUTPUT"
 
       # 저장소 시크릿에 서명 키가 있으면 사용(업데이트 설치 가능), 없으면 이번 빌드용 키를 새로 만든다
@@ -152,7 +160,7 @@ jobs:
 
   release:
     needs: [build, emulator-test, audio]
-    if: startsWith(github.ref, 'refs/tags/sg-english-v')
+    if: needs.build.outputs.release == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
@@ -167,6 +175,9 @@ jobs:
 
       - uses: softprops/action-gh-release@v2
         with:
+          tag_name: sg-english-v${{ needs.build.outputs.version }}
+          target_commitish: ${{ github.sha }}
+          make_latest: true
           name: 싱가포르 출장 생존영어 v${{ needs.build.outputs.version }} (Android)
           files: |
             dist/*.apk
